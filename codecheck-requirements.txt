@@ -1,3 +1,4 @@
 -r docs/requirements.txt
-pylint==2.7.4
-pytype==2021.4.15
+flake8==3.9.2
+pylint==2.11.1
+pytype==2021.9.9

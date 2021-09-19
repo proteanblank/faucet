@@ -25,7 +25,7 @@ from yaml.constructor import ConstructorError
 
 # handle libyaml-dev not installed
 try:
-    from yaml import CLoader as Loader # type: ignore
+    from yaml import CLoader as Loader  # type: ignore
 except ImportError:
     from yaml import Loader
 
@@ -43,14 +43,14 @@ class UniqueKeyLoader(Loader):  # pylint: disable=too-many-ancestors
                  self.construct_object(value_node, deep=deep))
                 for key_node, value_node in node.value]
         except TypeError as err:
-            raise ConstructorError('invalid key type: %s' % err)
+            raise ConstructorError('invalid key type: %s' % err) from err
         mapping = {}
         for key, value in key_value_pairs:
             try:
                 if key in mapping:
                     raise ConstructorError('duplicate key: %s' % key)
-            except TypeError:
-                raise ConstructorError('unhashable key: %s' % key)
+            except TypeError as type_error:
+                raise ConstructorError('unhashable key: %s' % key) from type_error
             mapping[key] = value
         return mapping
 
@@ -72,14 +72,14 @@ def read_config(config_file, logname):
     conf = None
 
     try:
-        with open(config_file, 'r') as stream:
+        with open(config_file, 'r', encoding='utf-8') as stream:
             conf_txt = stream.read()
         conf = yaml.safe_load(conf_txt)
     except (yaml.YAMLError, UnicodeDecodeError,
-            PermissionError, ValueError) as err: # pytype: disable=name-error
+            PermissionError, ValueError) as err:  # pytype: disable=name-error
         logger.error('Error in file %s (%s)', config_file, str(err))
-    except FileNotFoundError as err: # pytype: disable=name-error
-        logger.error('Could not find requested file: %s', config_file)
+    except FileNotFoundError as err:  # pytype: disable=name-error
+        logger.error('Could not find requested file: %s (%s)', config_file, str(err))
     return conf, conf_txt
 
 
@@ -91,7 +91,7 @@ def config_hash_content(content):
 
 def config_file_hash(config_file_name):
     """Return hash of YAML config file contents."""
-    with open(config_file_name) as config_file:
+    with open(config_file_name, encoding='utf-8') as config_file:
         return config_hash_content(config_file.read())
 
 
